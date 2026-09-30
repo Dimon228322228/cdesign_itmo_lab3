@@ -1,10 +1,13 @@
 `timescale 1ns / 1ps
 
+// Динамическая индикация 7-сегментного табло Saylinx (active-low).
+// Интерфейс: start / busy / value → SEG_DATA, SEG_SEL.
 module hex_to_7seg_dynamic #(
-    parameter integer DIGITS     = 4,
-    // при CLK=100 МГц ≈ 1 мс на одну цифру (как частота из ЛР2)
+    parameter integer DIGITS      = 4,
+    // при CLK=100 МГц ≈ 1 мс на одну цифру
     parameter integer REFRESH_DIV = 100_000,
-    parameter integer PASSES     = 8
+    // сколько полных проходов по всем цифрам, пока busy=1
+    parameter integer PASSES      = 8
 ) (
     input  wire        clk,
     input  wire        reset,
@@ -21,7 +24,7 @@ module hex_to_7seg_dynamic #(
     reg        state;
     reg [15:0] hold;
     reg [1:0]  digit_idx;
-    reg [16:0] div_cnt;   // до 100_000 при 100 МГц
+    reg [16:0] div_cnt;
     reg [7:0]  pass_cnt;
 
     assign busy = (state != IDLE);
@@ -55,9 +58,9 @@ module hex_to_7seg_dynamic #(
         input [1:0]  idx;
         begin
             case (idx)
-                2'd0: nibble_of = v[3:0];
-                2'd1: nibble_of = v[7:4];
-                2'd2: nibble_of = v[11:8];
+                2'd0:    nibble_of = v[3:0];
+                2'd1:    nibble_of = v[7:4];
+                2'd2:    nibble_of = v[11:8];
                 default: nibble_of = v[15:12];
             endcase
         end

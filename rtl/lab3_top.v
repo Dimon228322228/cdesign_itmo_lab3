@@ -1,5 +1,7 @@
 `timescale 1ns / 1ps
 
+// Верхний уровень ЛР3 (Saylinx): обёртка вокруг func_calc из ЛР2 + индикация.
+// FSM: IDLE → START → WORK → START_SEG → WAIT_SEG → IDLE.
 module lab3_top (
     input  wire        CLK,
     input  wire        RST_N,
@@ -16,7 +18,7 @@ module lab3_top (
     localparam START_SEG = 3'd3;
     localparam WAIT_SEG  = 3'd4;
 
-    wire clk = CLK;
+    wire clk   = CLK;
     wire reset = ~RST_N;
 
     wire [7:0] a_in = GPIO_1_input_pullup[7:0];
@@ -30,15 +32,15 @@ module lab3_top (
         .press(key2_press)
     );
 
-    reg [2:0] state;
-    reg       func_start;
-    reg       seg_start;
-    reg       func_armed;
-    reg       seg_armed;
-    reg [15:0] result;
+    reg  [2:0]  state;
+    reg         func_start;
+    reg         seg_start;
+    reg         func_armed;
+    reg         seg_armed;
+    reg  [15:0] result;
 
-    wire       busy_func;
-    wire [4:0] y_func;
+    wire        busy_func;
+    wire [4:0]  y_func;
 
     func_calc u_func (
         .clk(clk),
@@ -50,9 +52,9 @@ module lab3_top (
         .y(y_func)
     );
 
-    wire       busy_seg;
+    wire busy_seg;
     hex_to_7seg_dynamic #(
-        .REFRESH_DIV(100_000), // 1 мс/цифру при 100 МГц
+        .REFRESH_DIV(100_000),
         .PASSES(8)
     ) u_disp (
         .clk(clk),
@@ -99,7 +101,7 @@ module lab3_top (
                     if (busy_func)
                         func_armed <= 1'b1;
                     if (func_armed && !busy_func) begin
-                        result <= {11'd0, y_func};
+                        result    <= {11'd0, y_func};
                         seg_start <= 1'b1;
                         state     <= START_SEG;
                     end
