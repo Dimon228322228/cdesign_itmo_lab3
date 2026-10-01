@@ -5,11 +5,13 @@
 module lab3_top (
     input  wire        CLK,
     input  wire        RST_N,
-    input  wire        KEY2_N,
+    input  wire        KEY2_N, // кнопка KEY2 на плате (пин M16)
     input  wire [16:0] GPIO_1_input_pullup,
     output wire [3:0]  LED,
     output wire [7:0]  SEG_DATA,
-    output wire [7:0]  SEG_SEL
+    output wire [7:0]  SEG_SEL,
+    // парные выводы для перемычек на GND (как в примере Saylinx)
+    output wire [16:0] GPIO_1_out_zero_value
 );
 
     localparam IDLE      = 3'd0;
@@ -42,6 +44,11 @@ module lab3_top (
     wire        busy_func;
     wire [4:0]  y_func;
 
+    // двоичный y → десятичные цифры для табло (16 → «0016», не hex «0010»)
+    wire [3:0]  y_tens = y_func / 4'd10;
+    wire [3:0]  y_ones = y_func % 4'd10;
+    wire [15:0] y_dec  = {8'd0, y_tens, y_ones};
+
     func_calc u_func (
         .clk(clk),
         .reset(reset),
@@ -55,7 +62,7 @@ module lab3_top (
     wire busy_seg;
     hex_to_7seg_dynamic #(
         .REFRESH_DIV(100_000),
-        .PASSES(8)
+        .PASSES(2500)          // ~10 с при CLK=100 МГц; на плате 50 МГц → 1250
     ) u_disp (
         .clk(clk),
         .reset(reset),
@@ -70,6 +77,7 @@ module lab3_top (
     assign LED[1] = busy_func;
     assign LED[2] = busy_seg;
     assign LED[3] = 1'b0;
+    assign GPIO_1_out_zero_value = 17'd0;
 
     always @(posedge clk) begin
         if (reset) begin
@@ -101,7 +109,7 @@ module lab3_top (
                     if (busy_func)
                         func_armed <= 1'b1;
                     if (func_armed && !busy_func) begin
-                        result    <= {11'd0, y_func};
+                        result    <= y_dec;
                         seg_start <= 1'b1;
                         state     <= START_SEG;
                     end

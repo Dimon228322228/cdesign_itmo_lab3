@@ -16,7 +16,8 @@ module lab3_top_tb;
         .GPIO_1_input_pullup(GPIO_1_input_pullup),
         .LED(LED),
         .SEG_DATA(SEG_DATA),
-        .SEG_SEL(SEG_SEL)
+        .SEG_SEL(SEG_SEL),
+        .GPIO_1_out_zero_value()
     );
 
     defparam uut.u_disp.REFRESH_DIV = 200;
